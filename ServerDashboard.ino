@@ -201,6 +201,7 @@ void setup_ui() {
     lv_obj_set_style_border_color(card_cpu, lv_color_hex(0x333333), 0);
     lv_obj_set_style_pad_all(card_cpu, 10, 0);
     lv_obj_clear_flag(card_cpu, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(card_cpu, LV_OBJ_FLAG_EVENT_BUBBLE);
 
     label_cpu_title = lv_label_create(card_cpu);
     lv_label_set_text(label_cpu_title, "CPU LOAD (5m)");
@@ -230,6 +231,7 @@ void setup_ui() {
     lv_obj_set_style_border_color(card_mem, lv_color_hex(0x333333), 0);
     lv_obj_set_style_pad_all(card_mem, 10, 0);
     lv_obj_clear_flag(card_mem, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(card_mem, LV_OBJ_FLAG_EVENT_BUBBLE);
 
     label_mem_title = lv_label_create(card_mem);
     lv_label_set_text(label_mem_title, "MEMORY USAGE");
@@ -258,6 +260,7 @@ void setup_ui() {
     lv_obj_set_style_border_color(card_disk, lv_color_hex(0x333333), 0);
     lv_obj_set_style_pad_all(card_disk, 10, 0);
     lv_obj_clear_flag(card_disk, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(card_disk, LV_OBJ_FLAG_EVENT_BUBBLE);
 
     label_disk_title = lv_label_create(card_disk);
     lv_label_set_text(label_disk_title, "SSD USAGE");
@@ -286,6 +289,7 @@ void setup_ui() {
     lv_obj_set_style_border_color(card_uptime, lv_color_hex(0x333333), 0);
     lv_obj_set_style_pad_all(card_uptime, 10, 0);
     lv_obj_clear_flag(card_uptime, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(card_uptime, LV_OBJ_FLAG_EVENT_BUBBLE);
 
     label_uptime_title = lv_label_create(card_uptime);
     lv_label_set_text(label_uptime_title, "UPTIME");
@@ -310,6 +314,8 @@ void setup_ui() {
     lv_obj_set_style_text_font(label_updated, &lv_font_montserrat_16, 0);
     lv_obj_set_style_text_color(label_updated, lv_color_hex(0x888888), 0);
     lv_obj_align(label_updated, LV_ALIGN_BOTTOM_MID, 0, -10);
+
+    apply_theme();
 }
 
 void update_dashboard(String json_str) {
