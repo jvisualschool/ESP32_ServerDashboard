@@ -1,0 +1,27 @@
+# Build artifacts
+*.o
+*.elf
+*.bin
+*.hex
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Arduino build files
+build/
+*.ino.bin
+*.ino.elf
+*.ino.map
+
+# Temporary files
+*.tmp
+*.bak
+*.log

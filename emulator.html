@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-S3 Server Dashboard Emulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            font-family: 'Montserrat', -apple-system, sans-serif;
+            color: white;
+        }
+
+        .header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #00BFFF, #00FF00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .controls button {
+            padding: 0.5rem 1rem;
+            background: #00BFFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .controls button:hover {
+            background: #0099CC;
+        }
+
+        .device-container {
+            position: relative;
+            padding: 40px 15px;
+            background: #222;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 4px solid #444;
+        }
+
+        #screen {
+            width: 480px;
+            height: 320px;
+            background-color: #0a0a0a;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #screen.light {
+            background-color: #f5f5f5;
+        }
+
+        .title-container {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title {
+            color: #00BFFF;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 32px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        #screen.light .title {
+            color: #1976D2;
+        }
+
+        .badge {
+            background: #00BFFF;
+            color: #000;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #screen.light .badge {
+            background: #1976D2;
+            color: #fff;
+        }
+
+        .led {
+            position: absolute;
+            top: 25px;
+            right: 20px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #00FF00;
+            box-shadow: 0 0 8px #00FF00;
+            transition: opacity 0.1s;
+        }
+
+        .card {
+            position: absolute;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: background-color 0.3s;
+        }
+
+        #screen.light .card {
+            background: #ffffff;
+            border-color: #ddd;
+        }
+
+        .card-cpu { top: 60px; left: 20px; width: 190px; height: 90px; }
+        .card-mem { top: 60px; right: 20px; width: 190px; height: 90px; }
+        .card-disk { bottom: 40px; left: 20px; width: 190px; height: 90px; }
+        .card-uptime { bottom: 40px; right: 20px; width: 190px; height: 90px; }
+
+        .card-label { font-size: 14px; color: #aaa; }
+        #screen.light .card-label { color: #666; }
+
+        .bar-bg { width: 100%; height: 15px; background: #333; border-radius: 4px; position: relative; }
+        #screen.light .bar-bg { background: #e0e0e0; }
+
+        .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .val-label { font-size: 20px; text-align: center; color: white; font-weight: bold; }
+        #screen.light .val-label { color: #333; }
+
+        .uptime-text {
+            font-size: 14px;
+            text-align: center;
+            color: #00FF00;
+            margin-top: 10px;
+            word-wrap: break-word;
+        }
+
+        #screen.light .uptime-text { color: #388E3C; }
+
+        .sync-label { 
+            position: absolute; 
+            bottom: 10px; 
+            width: 100%; 
+            text-align: center; 
+            color: #888; 
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        #screen.light .sync-label { color: #666; }
+
+        .cam-lens {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: #111;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Server Dashboard - Multi Server Monitor</h1>
+        <p>좌우 화살표로 서버 전환, 화면 클릭으로 테마 전환</p>
+    </div>
+
+    <div class="controls">
+        <button onclick="prevServer()">← 이전 서버</button>
+        <button onclick="nextServer()">다음 서버 →</button>
+        <button onclick="toggleTheme()">테마 전환</button>
+    </div>
+
+    <div class="device-container">
+        <div class="cam-lens"></div>
+        <div id="screen" onclick="toggleTheme()">
+            <div class="title-container">
+                <div class="title" id="server-title">jvibeschool.com</div>
+                <div class="badge" id="server-badge">.com</div>
+            </div>
+            <div class="led" id="status-led"></div>
+            
+            <div class="card card-cpu">
+                <div class="card-label">CPU LOAD (5m)</div>
+                <div class="bar-bg"><div class="bar-fill" id="cpu-bar" style="background: #00FF00; width: 5%;"></div></div>
+                <div class="val-label" id="cpu-val">0.0%</div>
+            </div>
+
+            <div class="card card-mem">
+                <div class="card-label">MEMORY USAGE</div>
+                <div class="bar-bg"><div class="bar-fill" id="mem-bar" style="background: #FF4500; width: 55%;"></div></div>
+                <div class="val-label" id="mem-val">55.2%</div>
+            </div>
+
+            <div class="card card-disk">
+                <div class="card-label">SSD USAGE</div>
+                <div class="bar-bg"><div class="bar-fill" id="disk-bar" style="background: #FFD700; width: 36%;"></div></div>
+                <div class="val-label" id="disk-val">36%</div>
+            </div>
+
+            <div class="card card-uptime">
+                <div class="card-label">UPTIME</div>
+                <div class="uptime-text" id="uptime-val">Loading...</div>
+            </div>
+
+            <div class="sync-label" id="sync-val">Last Sync: Never</div>
+        </div>
+    </div>
+
+    <script>
+        const servers = [
+            { name: 'jvibeschool.com', url: 'https://jvibeschool.com/status.json', badge: '.com' },
+            { name: 'jvibeschool.org', url: 'https://jvibeschool.org/status.json.php', badge: '.org' }
+        ];
+        
+        let currentServer = 0;
+        const screen = document.getElementById('screen');
+        
+        function toggleTheme() {
+            screen.classList.toggle('light');
+        }
+
+        function nextServer() {
+            currentServer = (currentServer + 1) % servers.length;
+            updateServerDisplay();
+            fetchRealData();
+        }
+
+        function prevServer() {
+            currentServer = (currentServer - 1 + servers.length) % servers.length;
+            updateServerDisplay();
+            fetchRealData();
+        }
+
+        function updateServerDisplay() {
+            document.getElementById('server-title').textContent = servers[currentServer].name;
+            document.getElementById('server-badge').textContent = servers[currentServer].badge;
+            document.getElementById('uptime-val').textContent = 'Loading...';
+        }
+
+        // 키보드 화살표 지원
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevServer();
+            if (e.key === 'ArrowRight') nextServer();
+        });
+
+        async function fetchRealData() {
+            try {
+                const response = await fetch(servers[currentServer].url);
+                const data = await response.json();
+                
+                // CPU (5% 이하는 최소 5%로 표시)
+                const cpuPercent = data.cpu_load['5min'] * 100;
+                const cpuBarValue = (cpuPercent <= 5 && cpuPercent > 0) ? 5 : cpuPercent;
+                document.getElementById('cpu-bar').style.width = cpuBarValue + "%";
+                document.getElementById('cpu-val').textContent = cpuPercent.toFixed(1) + "%";
+                
+                // Memory
+                document.getElementById('mem-bar').style.width = data.memory.percent + "%";
+                document.getElementById('mem-val').textContent = data.memory.percent + "%";
+
+                // Disk
+                document.getElementById('disk-bar').style.width = data.disk.percent + "%";
+                document.getElementById('disk-val').textContent = data.disk.percent + "%";
+
+                // Uptime (주+일을 합쳐서 총 일수로 변환)
+                const uptimeStr = data.uptime;
+                const weekMatch = uptimeStr.match(/(\d+)\s*weeks?/);
+                const dayMatch = uptimeStr.match(/(\d+)\s*days?/);
+                const hourMatch = uptimeStr.match(/(\d+)\s*hours?/);
+                const minMatch = uptimeStr.match(/(\d+)\s*minutes?/);
+                
+                const weeks = weekMatch ? parseInt(weekMatch[1]) : 0;
+                const days = dayMatch ? parseInt(dayMatch[1]) : 0;
+                const hours = hourMatch ? parseInt(hourMatch[1]) : 0;
+                const minutes = minMatch ? parseInt(minMatch[1]) : 0;
+                
+                const totalDays = weeks * 7 + days;
+                document.getElementById('uptime-val').textContent = `${totalDays} days, ${hours}h ${minutes}m`;
+                
+                // Sync
+                document.getElementById('sync-val').textContent = "Last Sync: " + data.updated_at;
+                
+                // LED Blink effect
+                const led = document.getElementById('status-led');
+                led.style.opacity = "0";
+                setTimeout(() => led.style.opacity = "1", 100);
+
+            } catch (e) {
+                console.error("Fetch failed", e);
+                document.getElementById('uptime-val').textContent = 'Error loading data';
+            }
+        }
+
+        setInterval(fetchRealData, 30000);  // 30초마다 갱신
+        fetchRealData();
+    </script>
+</body>
+</html>
