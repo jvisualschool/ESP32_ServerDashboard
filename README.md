@@ -2,6 +2,16 @@
 
 2개 서버의 실시간 상태를 모니터링하는 ESP32-S3 대시보드
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="screenshot/screenshot1.png" width="400" />
+  <img src="screenshot/screenshot2.png" width="400" />
+</p>
+<p align="center">
+  <img src="screenshot/screenshot3.JPG" width="600" />
+</p>
+
 ## 📋 프로젝트 개요
 
 ESP32-S3 디바이스를 사용하여 여러 서버의 상태를 실시간으로 모니터링하고 시각화하는 프로젝트입니다.
