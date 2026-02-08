@@ -8,11 +8,12 @@
 #include "esp_bsp.h"
 #include "lv_port.h"
 
+#include "config.h"
+
 // -------------------------------------------------------------------
-// ⚠️ Wi-Fi 설정
+// Wi-Fi 설정 (config.h에서 정의됨)
 // -------------------------------------------------------------------
-const char* ssid = "MIHO-2.4G";
-const char* password = "20140312";
+
 
 // 서버 정보
 struct ServerInfo {
